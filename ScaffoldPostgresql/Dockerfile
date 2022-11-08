@@ -1,0 +1,34 @@
+FROM mcr.microsoft.com/dotnet/sdk:6.0.402-alpine3.15-amd64 as builder
+USER root
+
+RUN ["mkdir", "-p", "/opt/dotnetcore"]
+
+WORKDIR /opt/dotnetcore
+
+ADD . .
+
+# RUN ["mv", "appsettings.Docker.json", "appsettings.json"]
+
+RUN ["dotnet", "restore"]
+
+RUN ["dotnet", "publish", "-c", "Release"]
+
+FROM mcr.microsoft.com/dotnet/aspnet:6.0.10-alpine3.15-amd64
+
+# Add dotnet core env for enable swagger 
+ENV ASPNETCORE_ENVIRONMENT=Development
+
+USER root
+
+# RUN apt-get update && apt-get upgrade
+# RUN apt install -y curl
+# RUN apt install -y lsof
+
+RUN ["mkdir", "-p", "/opt/app-root"]
+
+WORKDIR /opt/app-root
+
+EXPOSE 8000
+
+COPY --from=builder /opt/dotnetcore/bin/Release/net6.0/publish .
+ENTRYPOINT ["dotnet", "ScaffoldPostgresql.dll"]

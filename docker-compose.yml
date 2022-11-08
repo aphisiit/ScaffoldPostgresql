@@ -1,0 +1,54 @@
+version: '3'
+services:
+  pg-database:
+    container_name: pg-database
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    restart: always
+    environment:
+      - TZ=Asia/Bangkok
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=test
+      - POSTGRES_PASSWORD=password
+    image: postgres:15.0
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "test"]
+      interval: 30s
+      timeout: 60s
+      retries: 5
+      start_period: 80s 
+    ports:
+      - 5432:5432
+    networks: 
+      - ef-network
+  
+  pg-admin:
+    container_name: pg-admin
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    restart: always
+    image: dpage/pgadmin4:6.15
+    environment:
+      - TZ=Asia/Bangkok
+      - PGADMIN_DEFAULT_EMAIL=admin@mail.com
+      - PGADMIN_DEFAULT_PASSWORD=P@ssw0rd
+    ports:
+      - 9000:80
+    networks:
+      - ef-network
+
+networks:
+  ef-network:
+    driver: bridge
